@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        FLUTTER_ENV: development
+    ports:
+      - "80:80"
+    volumes:
+      - .:/home/developer/app  # Oppdatert sti til å matche Dockerfile
+      - /home/developer/app/.dart_tool/  # Exclude .dart_tool
+      - /home/developer/app/build/  # Exclude build directory
+      - ./assets:/home/developer/app/assets
+    environment:
+      - FLUTTER_ENV=development
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - wedding_network
+
+networks:
+  wedding_network:
+    name: wedding_network
+    driver: bridge
