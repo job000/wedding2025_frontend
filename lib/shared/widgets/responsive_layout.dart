@@ -1,13 +1,21 @@
+// lib/shared/widgets/responsive_layout.dart
+
 import 'package:flutter/material.dart';
+import '../../core/theme/custom_colors.dart';
 
 class AppLayout extends StatelessWidget {
   final Widget child;
   final Color? backgroundColor;
   final bool showAppBar;
   final bool showBottomNav;
+  final bool isPublic;
+  final bool hideBackButton;
+  final bool hideAuthButton;
   final String? title;
   final List<Widget>? actions;
   final Widget? bottomNavigationBar;
+  final FloatingActionButton? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
 
   const AppLayout({
     super.key,
@@ -15,9 +23,14 @@ class AppLayout extends StatelessWidget {
     this.backgroundColor,
     this.showAppBar = false,
     this.showBottomNav = false,
+    this.isPublic = false,
+    this.hideBackButton = false,
+    this.hideAuthButton = false,
     this.title,
     this.actions,
     this.bottomNavigationBar,
+    this.floatingActionButton,
+    this.floatingActionButtonLocation,
   });
 
   @override
@@ -30,10 +43,31 @@ class AppLayout extends StatelessWidget {
       backgroundColor: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
       appBar: showAppBar
           ? AppBar(
-              title: title != null ? Text(title!) : null,
-              actions: actions,
+              automaticallyImplyLeading: !hideBackButton,
+              title: title != null 
+                  ? Text(
+                      title!,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    )
+                  : null,
+              actions: hideAuthButton ? null : actions,
               backgroundColor: Colors.transparent,
               elevation: 0,
+              flexibleSpace: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      CustomColors.primary.withOpacity(0.8),
+                      CustomColors.secondary.withOpacity(0.8),
+                    ],
+                  ),
+                ),
+              ),
             )
           : null,
       body: SafeArea(
@@ -51,6 +85,8 @@ class AppLayout extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: bottomNavigationBar,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation ?? FloatingActionButtonLocation.endFloat,
     );
   }
 }

@@ -4,7 +4,7 @@ class ApiConstants {
 
   // Base URL for API
   static const String baseUrl = 'http://localhost:5000';
-  
+
   // Endpoint paths
   static const String _auth = '/auth';
   static const String _rsvp = '/rsvp';
@@ -16,26 +16,50 @@ class ApiConstants {
   static const String login = '$_auth/login';
   static const String register = '$_auth/register';
   static const String profile = '$_auth/profile';
+  static const String getUsers = '$_auth/users';
+  static String updateUser(String username) => '$_auth/users/$username';
+  static String deleteUser(String username) => '$_auth/users/$username';
 
   // RSVP endpoints
   static const String getRsvps = _rsvp;
   static const String createRsvp = _rsvp;
+  static String getRsvpById(int id) => '$_rsvp/$id';
+  static String updateRsvp(int id) => '$_rsvp/$id';
+  static String deleteRsvp(int id) => '$_rsvp/$id';
 
   // Gallery endpoints
-  static const String getGallery = _gallery;
-  static const String uploadMedia = _gallery;
+  static const String getGallery = '$_gallery/media';  // Updated to match API spec
+  static const String uploadMedia = '$_gallery/upload';
+  static const String searchGallery = '$_gallery/search';
+  static const String getAlbums = '$_gallery/albums';
+  static const String createAlbum = '$_gallery/albums';
+  static String getAlbumById(int id) => '$_gallery/albums/$id';
+  static String updateAlbum(int id) => '$_gallery/albums/$id';
+  static String deleteAlbum(int id) => '$_gallery/albums/$id';
+  static String getMediaById(int id) => '$_gallery/media/$id';
+  static String updateMedia(int id) => '$_gallery/media/$id';
+  static String deleteMedia(int id) => '$_gallery/media/$id';
+  static String addComment(int mediaId) => '$_gallery/media/$mediaId/comments';
+  static String likeMedia(int mediaId) => '$_gallery/media/$mediaId/like';
 
   // Info endpoints
   static const String getInfo = _info;
   static const String createInfo = _info;
+  static String getInfoById(int id) => '$_info/$id';
+  static String updateInfo(int id) => '$_info/$id';
+  static String deleteInfo(int id) => '$_info/$id';
 
   // FAQ endpoints
   static const String getFaqs = _faq;
   static const String createFaq = _faq;
+  static String getFaqById(int id) => '$_faq/$id';
+  static String updateFaq(int id) => '$_faq/$id';
+  static String deleteFaq(int id) => '$_faq/$id';
 
   // HTTP Headers
   static const String contentType = 'Content-Type';
   static const String applicationJson = 'application/json';
+  static const String multipartFormData = 'multipart/form-data';
   static const String authorization = 'Authorization';
   static const String bearer = 'Bearer';
 
@@ -49,4 +73,6 @@ class ApiConstants {
   static const String timeoutError = 'Forespørselen tok for lang tid';
   static const String unauthorizedError = 'Ikke autorisert';
   static const String serverError = 'Serverfeil';
+  static const String unexpectedError = 'En uventet feil oppstod';
+  static const String invalidResponseFormat = 'Ugyldig responsformat fra serveren';
 }

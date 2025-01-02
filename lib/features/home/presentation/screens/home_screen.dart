@@ -1,9 +1,12 @@
+// lib/features/home/presentation/screens/home_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider;
-import 'package:weddingapp_frontend_v2/shared/widgets/responsive_layout.dart';
+import 'package:weddingapp_frontend_v2/core/theme/custom_colors.dart';
+import '../../../../shared/widgets/responsive_layout.dart';
+
 import '../widgets/feature_grid_widget.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../../shared/widgets/custom_bottom_nav_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,16 +16,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-
   Color _getRoleColor(String role) {
     switch (role) {
       case 'admin':
-        return Colors.red;
+        return CustomColors.burgundy;
       case 'editor':
-        return Colors.green;
+        return CustomColors.sage;
       default:
-        return Colors.blue;
+        return CustomColors.navy;
     }
   }
 
@@ -30,20 +31,130 @@ class _HomeScreenState extends State<HomeScreen> {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logg ut'),
-        content: const Text('Er du sikker på at du vil logge ut?'),
+        backgroundColor: CustomColors.neutral50,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Logg ut',
+          style: TextStyle(color: CustomColors.textPrimary),
+        ),
+        content: Text(
+          'Er du sikker på at du vil logge ut?',
+          style: TextStyle(color: CustomColors.textSecondary),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Avbryt'),
+            child: Text(
+              'Avbryt',
+              style: TextStyle(color: CustomColors.neutral600),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               provider.Provider.of<AuthProvider>(context, listen: false).logout();
               Navigator.pushReplacementNamed(context, '/login');
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CustomColors.primary,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Logg ut'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentScreen(bool isAuthenticated) {
+    if (!isAuthenticated) {
+      return _buildPublicContent();
+    }
+    
+
+    return _buildAuthenticatedContent();
+  }
+
+  Widget _buildPublicContent() {
+    return FeatureGrid(
+      onFeatureSelected: (index) {
+        switch (index) {
+          case 0:
+            Navigator.pushNamed(context, '/rsvp-public');
+            break;
+          case 1:
+            Navigator.pushNamed(context, '/info-public');
+            break;
+          case 2:
+            Navigator.pushNamed(context, '/login');
+            break;
+        }
+      },
+      isPublic: true,
+    );
+  }
+
+
+Widget _buildAuthenticatedContent() {
+  final userRole = provider.Provider.of<AuthProvider>(context).currentUser?.role ?? 'user';
+  debugPrint('User role: $userRole');
+  return SingleChildScrollView( // Lagt til for rullbarhet
+    padding: const EdgeInsets.all(16.0),
+    child: FeatureGrid(
+      onFeatureSelected: (index) {
+        switch (index) {
+          case 0:
+            if (userRole == 'admin' || userRole == 'editor') {
+              Navigator.pushNamed(context, '/rsvp-form');
+            } else {
+              _showUnauthorizedDialog('RSVP-administrasjon');
+            }
+            break;
+          case 1:
+            Navigator.pushNamed(context, '/gallery');
+            break;
+          case 2:
+            Navigator.pushNamed(context, '/info');
+            break;
+          case 3:
+            if (userRole == 'admin') {
+              Navigator.pushNamed(context, '/faq');
+            } else {
+              _showUnauthorizedDialog('FAQ-administrasjon');
+            }
+            break;
+        }
+      },
+      isPublic: false,
+    ),
+  );
+}
+
+
+  void _showUnauthorizedDialog(String feature) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CustomColors.neutral50,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Ingen tilgang',
+          style: TextStyle(color: CustomColors.error),
+        ),
+        content: Text(
+          'Du har ikke tilgang til $feature.',
+          style: TextStyle(color: CustomColors.textSecondary),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CustomColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -53,102 +164,60 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = provider.Provider.of<AuthProvider>(context);
+    final isAuthenticated = authProvider.isAuthenticated;
     final userRole = authProvider.currentUser?.role ?? 'user';
 
     return AppLayout(
       showAppBar: true,
-      actions: [
-        // Role indicator
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: _getRoleColor(userRole),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              userRole.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+      backgroundColor: CustomColors.background,
+      actions: isAuthenticated
+          ? [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: _getRoleColor(userRole),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _getRoleColor(userRole).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  userRole.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () => _showLogoutDialog(context),
-        ),
-        const SizedBox(width: 8),
-      ],
-      showBottomNav: true,
-      bottomNavigationBar: CustomBottomNavWidget(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: FeatureGrid(
-              onFeatureSelected: (index) {
-                switch (index) {
-                  case 0: // RSVP
-                    if (userRole == 'admin' || userRole == 'editor') {
-                      Navigator.pushNamed(context, '/rsvp-form');
-                    } else {
-                      // Vis dialog om manglende tilgang
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Ingen tilgang'),
-                          content: const Text('Du har ikke tilgang til denne funksjonen.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    break;
-                  case 1: // Bildegalleri
-                    Navigator.pushNamed(context, '/gallery');
-                    break;
-                  case 2: // Informasjon
-                    Navigator.pushNamed(context, '/info');
-                    break;
-                  case 3: // FAQ
-                    if (userRole == 'admin') {
-                      Navigator.pushNamed(context, '/faq');
-                    } else {
-                      // Vis dialog om manglende tilgang
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Ingen tilgang'),
-                          content: const Text('Kun administratorer har tilgang til denne funksjonen.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    break;
-                }
-              },
-            ),
-          ),
-        ],
-      ),
+              IconButton(
+                icon: const Icon(
+                  Icons.logout_rounded,
+                  color: Colors.white,
+                ),
+                onPressed: () => _showLogoutDialog(context),
+              ),
+              const SizedBox(width: 8),
+            ]
+          : [
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, '/login'),
+                child: const Text(
+                  'Logg inn',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+      child: _buildCurrentScreen(isAuthenticated),
     );
   }
 }
