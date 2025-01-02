@@ -35,6 +35,7 @@ Future<bool> login(String username, String password) async {
     // Hent JWT-token direkte fra backend
     final token = await _authRepository.login(username, password);
     print('Raw JWT token from backend: $token');
+    
 
     if (token.isEmpty) {
       throw Exception('Mottatt JWT-token er tomt.');

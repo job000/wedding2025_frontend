@@ -4,10 +4,7 @@ import '../../../../core/theme/custom_colors.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../data/models/gallery_media_model.dart';
 
-
-
 class GalleryItem extends StatelessWidget {
-
   final GalleryMediaModel media;
 
   const GalleryItem({
@@ -16,25 +13,25 @@ class GalleryItem extends StatelessWidget {
   }) : super(key: key);
 
   String _getFullImageUrl(String filename) {
-    // Sjekk om filnavnet allerede er en full URL
+    // Check if the filename is already a full URL
     if (filename.startsWith('http')) {
       return filename;
     }
-    // Hvis ikke, bygg full URL
+    // If not, construct the full URL
     return '${ApiConstants.baseUrl}/uploads/$filename';
   }
 
   @override
   Widget build(BuildContext context) {
     final imageUrl = _getFullImageUrl(media.filename);
-    
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        onTap: () => _showImageDialog(context, imageUrl),
+        onTap: () => _showImageDialog(context, media, imageUrl),
         borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -71,9 +68,10 @@ class GalleryItem extends StatelessWidget {
                             child: Text(
                               'Kunne ikke laste bildet',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: CustomColors.error,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: CustomColors.error),
                             ),
                           ),
                         ],
@@ -91,8 +89,8 @@ class GalleryItem extends StatelessWidget {
                   Text(
                     media.uploadedBy,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                          fontWeight: FontWeight.w500,
+                        ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -100,8 +98,8 @@ class GalleryItem extends StatelessWidget {
                   Text(
                     media.formattedUploadTime,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: CustomColors.neutral600,
-                    ),
+                          color: CustomColors.neutral600,
+                        ),
                   ),
                 ],
               ),
@@ -112,7 +110,8 @@ class GalleryItem extends StatelessWidget {
     );
   }
 
-  void _showImageDialog(BuildContext context, String imageUrl) {
+  void _showImageDialog(
+      BuildContext context, GalleryMediaModel media, String imageUrl) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -179,4 +178,6 @@ class GalleryItem extends StatelessWidget {
       ),
     );
   }
+
+  
 }

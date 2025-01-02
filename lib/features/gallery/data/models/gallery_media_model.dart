@@ -1,6 +1,29 @@
-// lib/features/gallery/data/models/gallery_media_model.dart
-
 import 'package:intl/intl.dart';
+
+// Ny klasse for kommentarer
+class Comment {
+  final String user;
+  final String comment;
+
+  Comment({
+    required this.user,
+    required this.comment,
+  });
+
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+      user: json['user'] as String,
+      comment: json['comment'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user': user,
+      'comment': comment,
+    };
+  }
+}
 
 class GalleryMediaModel {
   final int id;
@@ -13,6 +36,7 @@ class GalleryMediaModel {
   final List<String> tags;
   final String visibility;
   final int likes;
+  final List<Comment>? comments; // Nytt felt for kommentarer
 
   GalleryMediaModel({
     required this.id,
@@ -25,6 +49,7 @@ class GalleryMediaModel {
     required this.tags,
     required this.visibility,
     required this.likes,
+    this.comments, // Legger til kommentarer
   });
 
   // Formatert dato for visning
@@ -44,6 +69,9 @@ class GalleryMediaModel {
       tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
       visibility: json['visibility'] as String,
       likes: json['likes'] as int,
+      comments: (json['comments'] as List<dynamic>?)
+          ?.map((comment) => Comment.fromJson(comment as Map<String, dynamic>))
+          .toList(), // Parser kommentarer
     );
   }
 
@@ -58,5 +86,6 @@ class GalleryMediaModel {
         'tags': tags,
         'visibility': visibility,
         'likes': likes,
+        'comments': comments?.map((comment) => comment.toJson()).toList(),
       };
 }
