@@ -74,7 +74,7 @@ class _UploadMediaDialogState extends State<UploadMediaDialog> {
       }
 
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context,true);
         _showSuccessSnackBar('Bilde lastet opp!');
       }
     } catch (e) {

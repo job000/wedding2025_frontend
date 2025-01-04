@@ -1,3 +1,5 @@
+// gallery_provider.dart
+
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
@@ -15,6 +17,7 @@ class GalleryProvider extends ChangeNotifier {
   List<GalleryMediaModel> _mediaList = [];
   bool _isLoading = false;
   String? _error;
+  bool _isInitialized = false;
   
   GalleryProvider({
     ApiClient? apiClient,
@@ -25,6 +28,7 @@ class GalleryProvider extends ChangeNotifier {
   List<GalleryMediaModel> get mediaList => _mediaList;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get isInitialized => _isInitialized;
 
   Future<String?> _getAuthHeader() async {
     if (!_authProvider.isAuthenticated) {
@@ -35,6 +39,7 @@ class GalleryProvider extends ChangeNotifier {
     if (kIsWeb) {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
+      debugPrint('Token gallery: $token');
       return token != null ? '${ApiConstants.bearer} $token' : null;
     } else {
       final storage = const FlutterSecureStorage();
@@ -44,6 +49,8 @@ class GalleryProvider extends ChangeNotifier {
   }
 
   Future<void> fetchGalleryMedia() async {
+    if (_isLoading) return; // Prevent parallel API calls
+    
     try {
       _setLoading(true);
 
@@ -64,12 +71,12 @@ class GalleryProvider extends ChangeNotifier {
         _mediaList = (response.data as List)
             .map((item) => GalleryMediaModel.fromJson(item))
             .toList();
-
         _mediaList.sort((a, b) => b.uploadTime.compareTo(a.uploadTime));
       } else {
         throw ApiConstants.invalidResponseFormat;
       }
 
+      _isInitialized = true;
       _setLoading(false);
     } on DioException catch (e) {
       _handleError(e);
@@ -83,6 +90,8 @@ class GalleryProvider extends ChangeNotifier {
     required String filename,
     required String uploadedBy,
   }) async {
+    if (_isLoading) return;
+    
     try {
       _setLoading(true);
 
@@ -145,6 +154,8 @@ class GalleryProvider extends ChangeNotifier {
   }
 
   Future<void> likeMedia(int mediaId) async {
+    if (_isLoading) return;
+    
     try {
       final authHeader = await _getAuthHeader();
       if (authHeader == null) return;
@@ -168,6 +179,8 @@ class GalleryProvider extends ChangeNotifier {
   }
 
   Future<void> addComment(int mediaId, String comment) async {
+    if (_isLoading) return;
+    
     try {
       final authHeader = await _getAuthHeader();
       if (authHeader == null) return;
@@ -192,6 +205,8 @@ class GalleryProvider extends ChangeNotifier {
   }
 
   Future<void> deleteMedia(int mediaId) async {
+    if (_isLoading) return;
+    
     try {
       final authHeader = await _getAuthHeader();
       if (authHeader == null) return;
@@ -216,7 +231,7 @@ class GalleryProvider extends ChangeNotifier {
 
   void _setLoading(bool loading) {
     _isLoading = loading;
-    _error = null;
+    if (loading) _error = null;
     notifyListeners();
   }
 
@@ -260,6 +275,8 @@ class GalleryProvider extends ChangeNotifier {
   @override
   void dispose() {
     _mediaList = [];
+    _isInitialized = false;
     super.dispose();
   }
 }
+

@@ -25,8 +25,12 @@ class CustomBottomNavWidget extends StatelessWidget {
           label: 'Program',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.info),
+          icon: Icon(Icons.info_outline),
           label: 'Info',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.help_outline),
+          label: 'FAQ',
         ),
       ];
     } else {
@@ -40,11 +44,15 @@ class CustomBottomNavWidget extends StatelessWidget {
           label: 'Galleri',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.info),
+          icon: Icon(Icons.info_outline),
           label: 'Info',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.help),
+          icon: Icon(Icons.event),
+          label: 'Program',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.help_outline),
           label: 'FAQ',
         ),
       ];

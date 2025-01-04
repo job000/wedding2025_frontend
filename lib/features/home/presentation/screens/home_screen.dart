@@ -1,5 +1,3 @@
-// lib/features/home/presentation/screens/home_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:weddingapp_frontend_v2/core/theme/custom_colors.dart';
@@ -71,8 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!isAuthenticated) {
       return _buildPublicContent();
     }
-    
-
     return _buildAuthenticatedContent();
   }
 
@@ -84,10 +80,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.pushNamed(context, '/rsvp-public');
             break;
           case 1:
-            Navigator.pushNamed(context, '/info-public');
+            Navigator.pushNamed(context, '/program-public');
             break;
           case 2:
             Navigator.pushNamed(context, '/login');
+            break;
+          case 3:
+            Navigator.pushNamed(context, '/register');
             break;
         }
       },
@@ -95,42 +94,54 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
-Widget _buildAuthenticatedContent() {
-  final userRole = provider.Provider.of<AuthProvider>(context).currentUser?.role ?? 'user';
-  debugPrint('User role: $userRole');
-  return SingleChildScrollView( // Lagt til for rullbarhet
-    padding: const EdgeInsets.all(16.0),
-    child: FeatureGrid(
-      onFeatureSelected: (index) {
-        switch (index) {
-          case 0:
-            if (userRole == 'admin' || userRole == 'editor') {
-              Navigator.pushNamed(context, '/rsvp-form');
-            } else {
-              _showUnauthorizedDialog('RSVP-administrasjon');
-            }
-            break;
-          case 1:
-            Navigator.pushNamed(context, '/gallery');
-            break;
-          case 2:
-            Navigator.pushNamed(context, '/info');
-            break;
-          case 3:
-            if (userRole == 'admin') {
-              Navigator.pushNamed(context, '/faq');
-            } else {
-              _showUnauthorizedDialog('FAQ-administrasjon');
-            }
-            break;
-        }
-      },
-      isPublic: false,
-    ),
-  );
-}
-
+  Widget _buildAuthenticatedContent() {
+    final userRole = provider.Provider.of<AuthProvider>(context).currentUser?.role ?? 'user';
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Text(
+            'Velkommen til vårt bryllup!',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: CustomColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          FeatureGrid(
+            onFeatureSelected: (index) {
+              switch (index) {
+                case 0:
+                  if (userRole == 'admin' || userRole == 'editor') {
+                    Navigator.pushNamed(context, '/rsvp-form');
+                  } else {
+                    _showUnauthorizedDialog('RSVP-administrasjon');
+                  }
+                  break;
+                case 1:
+                  Navigator.pushNamed(context, '/gallery');
+                  break;
+                case 2:
+                  Navigator.pushNamed(context, '/info-public');
+                  break;
+                case 3:
+                  Navigator.pushNamed(context, '/program-public');
+                  break;
+                case 4:
+                  Navigator.pushNamed(
+                    context,
+                    userRole == 'admin' ? '/faq' : '/faq-public',
+                  );
+                  break;
+              }
+            },
+            isPublic: false,
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showUnauthorizedDialog(String feature) {
     showDialog(
