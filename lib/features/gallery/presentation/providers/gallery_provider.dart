@@ -1,5 +1,3 @@
-// gallery_provider.dart
-
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
@@ -39,7 +37,6 @@ class GalleryProvider extends ChangeNotifier {
     if (kIsWeb) {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
-      debugPrint('Token gallery: $token');
       return token != null ? '${ApiConstants.bearer} $token' : null;
     } else {
       final storage = const FlutterSecureStorage();
@@ -48,111 +45,123 @@ class GalleryProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchGalleryMedia() async {
-    if (_isLoading) return; // Prevent parallel API calls
+ Future<void> fetchGalleryMedia({bool forceRefresh = false}) async {
+  if (_isLoading) return;
+  
+  try {
+    _setLoading(true);
+    _error = null;
+
+    final authHeader = await _getAuthHeader();
+    if (authHeader == null) return;
+
+    final headers = {
+      ApiConstants.contentType: ApiConstants.applicationJson,
+      ApiConstants.authorization: authHeader,
+      'Pragma': 'no-cache',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Expires': '0',
+    };
+
+    final response = await _apiClient.get(
+      ApiConstants.getGallery,
+      options: Options(headers: headers),
+    );
     
-    try {
-      _setLoading(true);
-
-      final authHeader = await _getAuthHeader();
-      if (authHeader == null) return;
-
-      final response = await _apiClient.get(
-        ApiConstants.getGallery,
-        options: Options(
-          headers: {
-            ApiConstants.contentType: ApiConstants.applicationJson,
-            ApiConstants.authorization: authHeader,
-          },
-        ),
-      );
-      
-      if (response.data is List) {
-        _mediaList = (response.data as List)
-            .map((item) => GalleryMediaModel.fromJson(item))
-            .toList();
-        _mediaList.sort((a, b) => b.uploadTime.compareTo(a.uploadTime));
-      } else {
-        throw ApiConstants.invalidResponseFormat;
-      }
-
+    if (response.data is List) {
+      _mediaList = (response.data as List)
+          .map((item) => GalleryMediaModel.fromJson(item))
+          .toList();
+      _mediaList.sort((a, b) => b.uploadTime.compareTo(a.uploadTime));
       _isInitialized = true;
-      _setLoading(false);
-    } on DioException catch (e) {
-      _handleError(e);
-    } catch (e) {
-      _setError(e.toString());
+    } else {
+      throw 'Invalid response format';
     }
+  } catch (e) {
+    _error = e is DioException ? _getDioErrorMessage(e) : e.toString();
+  } finally {
+    _setLoading(false);
+    notifyListeners();
   }
+}
 
-  Future<void> uploadMedia({
-    required dynamic file,
-    required String filename,
-    required String uploadedBy,
-  }) async {
-    if (_isLoading) return;
-    
-    try {
-      _setLoading(true);
-
-      final authHeader = await _getAuthHeader();
-      if (authHeader == null) return;
-
-      FormData formData;
-      
-      if (kIsWeb) {
-        final bytes = file is Uint8List 
-            ? file 
-            : await file.readAsBytes();
-            
-        formData = FormData.fromMap({
-          'file': MultipartFile.fromBytes(
-            bytes,
-            filename: filename,
-          ),
-          'title': 'Bilde fra bryllupet',
-          'media_type': 'image',
-          'description': 'Lastet opp av $uploadedBy',
-          'uploaded_by': uploadedBy,
-          'tags': ['bryllup'],
-          'visibility': 'public',
-        });
-      } else {
-        formData = FormData.fromMap({
-          'file': MultipartFile.fromBytes(
-            file is Uint8List ? file : await file.readAsBytes(),
-            filename: filename,
-          ),
-          'title': 'Bilde fra bryllupet',
-          'media_type': 'image',
-          'description': 'Lastet opp av $uploadedBy',
-          'uploaded_by': uploadedBy,
-          'tags': ['bryllup'],
-          'visibility': 'public',
-        });
+String _getDioErrorMessage(DioException e) {
+  switch (e.type) {
+    case DioExceptionType.connectionTimeout:
+    case DioExceptionType.sendTimeout:
+    case DioExceptionType.receiveTimeout:
+      return ApiConstants.timeoutError;
+    case DioExceptionType.badResponse:
+      switch (e.response?.statusCode) {
+        case 401:
+          return ApiConstants.unauthorizedError;
+        case 500:
+          return ApiConstants.serverError;
+        default:
+          return e.message ?? ApiConstants.unexpectedError;
       }
-
-      await _apiClient.post(
-        ApiConstants.uploadMedia,
-        data: formData,
-        options: Options(
-          headers: {
-            ApiConstants.contentType: ApiConstants.multipartFormData,
-            ApiConstants.authorization: authHeader,
-          },
-        ),
-      );
-
-      await fetchGalleryMedia();
-    } on DioException catch (e) {
-      _handleError(e);
-      rethrow;
-    } catch (e) {
-      _setError(e.toString());
-      rethrow;
-    }
+    case DioExceptionType.connectionError:
+      return ApiConstants.connectionError;
+    default:
+      return e.message ?? ApiConstants.serverError;
   }
+}
 
+
+Future<void> uploadMedia({
+  required dynamic file,
+  required String filename,
+  required String title,
+  String? description,
+  String? mediaType,
+  String? visibility,
+  List<String>? tags,
+}) async {
+  if (_isLoading) return;
+  
+  try {
+    _setLoading(true);
+    _error = null;
+
+    final authHeader = await _getAuthHeader();
+    if (authHeader == null) return;
+
+    FormData formData = FormData.fromMap({
+      'file': MultipartFile.fromBytes(
+        file is Uint8List ? file : await file.readAsBytes(),
+        filename: filename,
+      ),
+      'title': title,
+      'media_type': mediaType ?? 'image',
+      'description': description,
+      'visibility': visibility ?? 'public',
+      'tags': tags ?? ['bryllup'],
+    });
+
+    await _apiClient.post(
+      ApiConstants.uploadMedia,
+      data: formData,
+      options: Options(
+        headers: {
+          ApiConstants.contentType: ApiConstants.multipartFormData,
+          ApiConstants.authorization: authHeader,
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Expires': '0',
+        },
+      ),
+    );
+
+    await fetchGalleryMedia(forceRefresh: true);
+  } catch (e) {
+    _error = e is DioException ? _getDioErrorMessage(e) : e.toString();
+    rethrow;
+  } finally {
+    _setLoading(false);
+    notifyListeners();
+  }
+}
+  
   Future<void> likeMedia(int mediaId) async {
     if (_isLoading) return;
     
@@ -166,11 +175,12 @@ class GalleryProvider extends ChangeNotifier {
           headers: {
             ApiConstants.contentType: ApiConstants.applicationJson,
             ApiConstants.authorization: authHeader,
+            ApiConstants.cacheControl: ApiConstants.noCache,
           },
         ),
       );
       
-      await fetchGalleryMedia();
+      await fetchGalleryMedia(forceRefresh: true);
     } on DioException catch (e) {
       _handleError(e);
     } catch (e) {
@@ -192,11 +202,12 @@ class GalleryProvider extends ChangeNotifier {
           headers: {
             ApiConstants.contentType: ApiConstants.applicationJson,
             ApiConstants.authorization: authHeader,
+            ApiConstants.cacheControl: ApiConstants.noCache,
           },
         ),
       );
       
-      await fetchGalleryMedia();
+      await fetchGalleryMedia(forceRefresh: true);
     } on DioException catch (e) {
       _handleError(e);
     } catch (e) {
@@ -217,11 +228,12 @@ class GalleryProvider extends ChangeNotifier {
           headers: {
             ApiConstants.contentType: ApiConstants.applicationJson,
             ApiConstants.authorization: authHeader,
+            ApiConstants.cacheControl: ApiConstants.noCache,
           },
         ),
       );
       
-      await fetchGalleryMedia();
+      await fetchGalleryMedia(forceRefresh: true);
     } on DioException catch (e) {
       _handleError(e);
     } catch (e) {
@@ -279,4 +291,3 @@ class GalleryProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-

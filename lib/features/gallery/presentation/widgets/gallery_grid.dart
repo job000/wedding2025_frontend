@@ -98,9 +98,11 @@ class GalleryGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GalleryProvider>(
       builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
+        if (provider.isLoading && provider.mediaList.isEmpty) {
+          return Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(CustomColors.primary),
+            ),
           );
         }
 
@@ -108,7 +110,7 @@ class GalleryGrid extends StatelessWidget {
           return _buildErrorState(
             context, 
             provider.error!,
-            () => provider.fetchGalleryMedia(),
+            () => provider.fetchGalleryMedia(forceRefresh: true),
           );
         }
 
@@ -117,7 +119,7 @@ class GalleryGrid extends StatelessWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: () => provider.fetchGalleryMedia(),
+          onRefresh: () => provider.fetchGalleryMedia(forceRefresh: true),
           child: _buildGridView(context, provider),
         );
       },

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-// Husk å importere AuthProvider hvis du har en slik
 import '../../../auth/presentation/providers/auth_provider.dart';
-
 import '../../../../core/theme/custom_colors.dart';
 import '../../../../shared/widgets/responsive_layout.dart';
 import '../providers/gallery_provider.dart';
@@ -23,16 +20,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
   @override
   void initState() {
     super.initState();
-    // 1) Kjør _initializeGallery etter at første build er ferdig
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AuthProvider>();
-      // 2) Sjekk om brukeren er innlogget (isAuthenticated)
-      //    Hvis ja, hent galleri; hvis nei, kan du vise en feilmelding eller lignende
       if (authProvider.isAuthenticated) {
         _initializeGallery();
       } else {
         // Hvis ønskelig, håndter scenarioet "ikke innlogget" her
-        // For eksempel: Navigator.pushNamed(context, '/login');
+        Navigator.pushNamed(context, '/login');
       }
     });
   }
@@ -45,7 +39,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       setState(() => _isLoading = true);
       
       try {
-        await galleryProvider.fetchGalleryMedia();
+        await galleryProvider.fetchGalleryMedia(forceRefresh: true);
       } catch (e) {
         if (mounted) {
           _showErrorSnackbar('Kunne ikke laste galleriet: $e');
@@ -63,7 +57,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     
     setState(() => _isLoading = true);
     try {
-      await context.read<GalleryProvider>().fetchGalleryMedia();
+      await context.read<GalleryProvider>().fetchGalleryMedia(forceRefresh: true);
     } catch (e) {
       if (mounted) {
         _showErrorSnackbar('Kunne ikke laste galleriet: $e');
@@ -81,7 +75,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: CustomColors.error,
+        backgroundColor: CustomColors.error.withOpacity(0.9),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Prøv igjen',
@@ -103,9 +97,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     if (result == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Bildet ble lastet opp!'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text('Bildet ble lastet opp!'),
+          backgroundColor: CustomColors.success.withOpacity(0.9),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -208,9 +202,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return AppLayout(
       showAppBar: true,
       title: 'Bildegalleri',
+      backgroundColor: CustomColors.background,
       actions: [
         IconButton(
-          icon: const Icon(Icons.add_photo_alternate),
+          icon: const Icon(Icons.add_photo_alternate, color: Colors.white),
           onPressed: _showUploadDialog,
           tooltip: 'Last opp bilde',
         ),
@@ -219,8 +214,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
       child: Consumer<GalleryProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading || _isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(CustomColors.primary),
+              ),
             );
           }
 
@@ -234,6 +231,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
           return RefreshIndicator(
             onRefresh: _loadGallery,
+            color: CustomColors.primary,
             child: Stack(
               children: [
                 const GalleryGrid(),
@@ -243,7 +241,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     bottom: 16,
                     child: FloatingActionButton(
                       onPressed: _showUploadDialog,
-                      backgroundColor: CustomColors.primary,
+                      backgroundColor: CustomColors.primary.withOpacity(0.9),
+                      foregroundColor: Colors.white,
+                      elevation: 4,
                       heroTag: 'uploadFab',
                       child: const Icon(Icons.add_photo_alternate),
                     ),

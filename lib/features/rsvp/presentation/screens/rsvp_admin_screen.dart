@@ -222,30 +222,30 @@ class _RsvpAdminScreenState extends State<RsvpAdminScreen> {
     }
   }
 
-  Future<void> _sendEmail(String email) async {
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: email,
-      queryParameters: {
-        'subject': 'Angående din RSVP til bryllupet',
-      },
-    );
-    
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke åpne e-postklient')),
-        );
-      }
+ Future<void> _sendEmail(String email) async {
+  final Uri emailUri = Uri(
+    scheme: 'mailto',
+    path: email,
+    queryParameters: {
+      'subject': 'Angående din RSVP til bryllupet',
+    },
+  );
+  
+  if (!await launchUrl(emailUri, mode: LaunchMode.externalApplication)) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kunne ikke åpne e-postklient')),
+      );
     }
   }
+}
+
 
   Widget _buildRsvpCard(BuildContext context, RSVP rsvp) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Slidable(
+        key: ValueKey(rsvp.id),
         endActionPane: ActionPane(
           motion: const ScrollMotion(),
           children: [
@@ -274,8 +274,8 @@ class _RsvpAdminScreenState extends State<RsvpAdminScreen> {
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
               color: rsvp.attending 
-                ? CustomColors.success.withOpacity(0.3) 
-                : CustomColors.error.withOpacity(0.3),
+                ? CustomColors.success.withAlpha(77) // Byttet fra withOpacity
+                : CustomColors.error.withAlpha(77),
               width: 1,
             ),
           ),
@@ -304,8 +304,8 @@ class _RsvpAdminScreenState extends State<RsvpAdminScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: rsvp.attending 
-                            ? CustomColors.success.withOpacity(0.1)
-                            : CustomColors.error.withOpacity(0.1),
+                            ? CustomColors.success.withAlpha(26) // 0.1 opacity * 255 ≈ 26
+                            : CustomColors.error.withAlpha(26),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -385,8 +385,8 @@ class _RsvpAdminScreenState extends State<RsvpAdminScreen> {
     final filteredRsvps = rsvps.where((rsvp) {
       final searchLower = _searchQuery.toLowerCase();
       return rsvp.name.toLowerCase().contains(searchLower) ||
-          rsvp.email.toLowerCase().contains(searchLower) ||
-          (rsvp.allergies?.toLowerCase() ?? '').contains(searchLower);
+             rsvp.email.toLowerCase().contains(searchLower) ||
+             (rsvp.allergies?.toLowerCase() ?? '').contains(searchLower);
     }).toList();
 
     // Eksempel på en liten statistikk

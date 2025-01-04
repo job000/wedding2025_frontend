@@ -75,4 +75,8 @@ class ApiConstants {
   static const String serverError = 'Serverfeil';
   static const String unexpectedError = 'En uventet feil oppstod';
   static const String invalidResponseFormat = 'Ugyldig responsformat fra serveren';
+
+  // Add these new cache control constants
+  static const String cacheControl = 'Cache-Control';
+  static const String noCache = 'no-cache, no-store, must-revalidate';
 }
