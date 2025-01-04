@@ -49,6 +49,8 @@ dependencies:
   timeago: ^3.2.2
   emoji_picker_flutter: ^4.2.0
   url_launcher: ^6.3.1
+  either_dart: ^1.0.0
+  flutter_slidable: ^3.1.2
 
 dev_dependencies:
   flutter_test:

@@ -113,10 +113,10 @@ class _HomeScreenState extends State<HomeScreen> {
             onFeatureSelected: (index) {
               switch (index) {
                 case 0:
-                  if (userRole == 'admin' || userRole == 'editor') {
-                    Navigator.pushNamed(context, '/rsvp-form');
+                  if (userRole == 'admin' || userRole == 'editor' || userRole == 'user') {
+                    Navigator.pushNamed(context, '/rsvp-admin');
                   } else {
-                    _showUnauthorizedDialog('RSVP-administrasjon');
+                    _showUnauthorizedDialog('RSVP-admin');
                   }
                   break;
                 case 1:

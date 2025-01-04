@@ -7,6 +7,7 @@ import 'package:weddingapp_frontend_v2/features/faq/presentation/providers/faq_p
 import 'package:weddingapp_frontend_v2/features/faq/presentation/screens/faq_public_screen.dart';
 import 'package:weddingapp_frontend_v2/features/info/presentation/screens/info_public_screen.dart';
 import 'package:weddingapp_frontend_v2/features/program/presentation/screens/program_public_screen.dart';
+import 'package:weddingapp_frontend_v2/features/rsvp/presentation/screens/rsvp_admin_screen.dart';
 
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -40,8 +41,11 @@ void main() async {
                 ),
           ),
           provider.ChangeNotifierProvider<RsvpProvider>(
-            create: (_) => RsvpProvider(),
-          ),
+  create: (context) => RsvpProvider(
+    authProvider: context.read<AuthProvider>(), 
+  ),
+),
+
           provider.ChangeNotifierProvider<FAQProvider>(
             create: (_) => FAQProvider(ApiClient()),
           ),
@@ -137,6 +141,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         '/program-public': (context) => const ProgramPublicScreen(),
         '/faq': (context) => const FAQPublicScreen(),
         '/rsvp-public': (context) => const RsvpPublicScreen(),
+        
+        '/rsvp-admin': (context) => const RsvpAdminScreen(),
       },
     );
   }
