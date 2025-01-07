@@ -12,6 +12,18 @@
 .swiftpm/
 migrate_working_dir/
 
+# fra claude
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+pubspec.lock
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
 # IntelliJ related
 *.iml
 *.ipr
