@@ -3,7 +3,7 @@ class ApiConstants {
   ApiConstants._();
 
   // Base URL for API
-  static const String baseUrl = 'http://localhost:5000';
+static const String baseUrl = 'https://wedding2025-backend.onrender.com';
 
   // Endpoint paths
   static const String _auth = '/auth';

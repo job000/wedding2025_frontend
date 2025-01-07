@@ -114,6 +114,8 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
