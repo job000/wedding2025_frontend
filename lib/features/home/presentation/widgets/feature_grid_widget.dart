@@ -268,7 +268,7 @@ class FeatureGrid extends StatelessWidget {
         .scale(begin: const Offset(0.95, 0.95));
   }
 
-  // UENDRET KODE VIDERE:
+ 
 
   Widget _buildAnimatedInfoCard(
     BuildContext context,
