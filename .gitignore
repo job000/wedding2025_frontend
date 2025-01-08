@@ -17,7 +17,6 @@ migrate_working_dir/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
-build/
 pubspec.lock
 .idea/
 .vscode/
