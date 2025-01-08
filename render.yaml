@@ -7,7 +7,7 @@ services:
     staticPublishPath: ./build/web
     envVars:
       - key: FLUTTER_VERSION
-        value: 3.28.0-2.0.pre.38577
+        value: 3.27.1
     headers:
       - path: /*
         name: Cache-Control
