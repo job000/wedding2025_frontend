@@ -163,14 +163,19 @@ class _AnimatedButtonState extends State<AnimatedButton> with SingleTickerProvid
           ),
           const SizedBox(width: 8),
         ],
-        Text(
+        Flexible(
+          child:Text(
           widget.text,
           style: TextStyle(
             color: widget.textColor ?? Colors.white,
-            fontSize: 16,
+            fontSize: MediaQuery.of(context).size.width > 600 ? 16 : 14, // Responsiv font
+            
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
         ),
       ],
     ).animate(
